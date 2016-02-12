@@ -5,7 +5,6 @@ end
 
 defmodule Funciones do
 
-
   def filtrar_directorios([]), do: []
   def filtrar_directorios([ actual | resto ]) do
     case File.dir? actual do
@@ -34,31 +33,27 @@ defmodule Funciones do
   def hacer_magia([ actual | resto ], cmd, args) do
     IO.puts "Ejecutando en #{actual}"
     case System.cmd(cmd, args, cd: actual) do
-      {_output, 0} -> IO.puts "Comando ejecutado correctamente en #{actual}"
-                      IO.puts _output
+      {output, 0} -> IO.puts "Comando ejecutado correctamente en #{actual}"
+                      IO.puts output
       {_, _} -> IO.puts "Comando ejecutado erroneamente en #{actual}"
     end
-    #hacer_magia resto, cmd, args
 
     [ actual | hacer_magia(resto, cmd, args) ]
   end
 
-  defp armar_path(_pre, []), do: []
-  defp armar_path(pre, [ actual | resto ]) do
+  def armar_path(_pre, []), do: []
+  def armar_path(pre, [ actual | resto ]) do
     [ Enum.join([pre, "/", actual]) | armar_path(pre, resto) ]
   end
 
 end
 
-{_, lista} = File.ls "."
-#lista = ["/tmp/", "/etc/issue", "/etc/hosts"]
+dir = "../educar-debs"
+{_, lista} = File.ls dir
 
-#args = ["-i", "s/Sebastian Alvarez/Equipo de Desarrollo/g;s/salvarez/desarrollo/g", "debian/changelog", "debian/control"]
-
-Funciones.filtrar_directorios(lista)
+Funciones.armar_path(dir, lista)
+|> Funciones.filtrar_directorios
 |> Funciones.encontrar_git_root
-|> Funciones.hacer_magia("pdebuild", [])
-#|> Funciones.hacer_magia("git", ["status"])
-#|> Funciones.hacer_magia("git", ["add", "."])
-#|> Funciones.hacer_magia("git", ["commit", "-m", "Se cambian mantainers"])
-#|> Funciones.hacer_magia("git", ["push", "origin", "master"])
+|> IO.inspect
+
+
