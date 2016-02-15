@@ -33,7 +33,7 @@ defmodule Funciones do
   def hacer_magia([ actual | resto ], cmd, args) do
     IO.puts "Ejecutando en #{actual}"
     case System.cmd(cmd, args, cd: actual) do
-      {output, 0} -> IO.puts "Comando ejecutado correctamente en #{actual}"
+      {output, 0} ->  IO.puts "Comando ejecutado correctamente en #{actual}"
                       IO.puts output
       {_, _} -> IO.puts "Comando ejecutado erroneamente en #{actual}"
     end
@@ -54,6 +54,7 @@ dir = "../educar-debs"
 Funciones.armar_path(dir, lista)
 |> Funciones.filtrar_directorios
 |> Funciones.encontrar_git_root
+|> Funciones.hacer_magia("git", ["status"])
 |> IO.inspect
 
 
