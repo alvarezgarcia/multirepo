@@ -32,7 +32,18 @@ defmodule Git do
     end
   end
 
+  def log([]), do: []
   def log([], _), do: []
+  def log([ actual | resto ]) do
+    IO.puts "Ultimo commit en: #{actual}"
+
+    {output, _} = cmd("git", ["log", "--pretty=oneline", "--abbrev-commit", "-1"], actual)
+    [_, msg] = String.split(output, " ", parts: 2)
+
+    IO.puts msg
+
+    log(resto)
+  end
   def log([ actual | resto ], m) do
     IO.puts "Ultimo commit en: #{actual}"
 
@@ -122,6 +133,7 @@ defmodule Funciones do
   def pushes(directorios), do: Git.push(directorios)
   def statuses(directorios), do: Git.status(directorios)
   def logses(directorios, m), do: Git.log(directorios, m)
+  def logses(directorios), do: Git.log(directorios)
   def addses(directorios), do: Git.add(directorios)
   def commitses(directorios, m), do: Git.commit(directorios, m)
 
@@ -139,10 +151,11 @@ dir = "../educar-debs"
 Funciones.armar_path(dir, lista)
 |> Funciones.filtrar_directorios
 |> Funciones.encontrar_git_root
-|> Funciones.addses
-|> Funciones.commitses("Se agrega README vacio")
-|> Funciones.pushes
+#|> Funciones.addses
+#|> Funciones.commitses("Se agrega README vacio")
+#|> Funciones.pushes
 #|> Funciones.statuses
 #|> Funciones.logses("Se agrega README vacio\n")
+|> Funciones.logses
 
 
