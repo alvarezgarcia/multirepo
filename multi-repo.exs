@@ -33,7 +33,6 @@ defmodule Git do
   end
 
   def log([]), do: []
-  def log([], _), do: []
   def log([ actual | resto ]) do
     IO.puts "Ultimo commit en: #{actual}"
 
@@ -44,7 +43,8 @@ defmodule Git do
 
     log(resto)
   end
-  def log([ actual | resto ], m) do
+  def log_compare([], _), do: []
+  def log_compare([ actual | resto ], m) do
     IO.puts "Ultimo commit en: #{actual}"
 
     {output, _} = cmd("git", ["log", "--pretty=oneline", "--abbrev-commit", "-1"], actual)
@@ -52,7 +52,7 @@ defmodule Git do
 
     cond do
       msg != m -> raise "No es \"#{m}\""
-      msg == m -> log(resto, m)
+      msg == m -> log_compare(resto, m)
     end
 
   end
@@ -71,7 +71,7 @@ defmodule Git do
   def commit([], _), do: []
   def commit([ actual | resto ], m) do
     IO.puts "Commiteando archivos en: #{actual}"
-    {output, _} = cmd("git", ["commit", "-m", "#{m}"], actual)
+    cmd("git", ["commit", "-m", "#{m}"], actual)
 
     [ actual | commit(resto, m) ]
 
@@ -132,7 +132,7 @@ defmodule Funciones do
 
   def pushes(directorios), do: Git.push(directorios)
   def statuses(directorios), do: Git.status(directorios)
-  def logses(directorios, m), do: Git.log(directorios, m)
+  def logses_compare(directorios, m), do: Git.log_compare(directorios, m)
   def logses(directorios), do: Git.log(directorios)
   def addses(directorios), do: Git.add(directorios)
   def commitses(directorios, m), do: Git.commit(directorios, m)
@@ -155,7 +155,7 @@ Funciones.armar_path(dir, lista)
 #|> Funciones.commitses("Se agrega README vacio")
 #|> Funciones.pushes
 #|> Funciones.statuses
-#|> Funciones.logses("Se agrega README vacio\n")
-|> Funciones.logses
+|> Funciones.logses_compare("Se agrega README vacio\n")
+#|> Funciones.logses
 
 
