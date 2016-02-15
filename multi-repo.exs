@@ -3,6 +3,50 @@ defmodule Lista do
   def len([_head|tail]), do: 1 + len(tail)
 end
 
+defmodule Git do
+  def push([]), do: []
+  def push([ actual | resto ]) do
+    IO.puts "Ejecutando en #{actual}"
+    {remote_url, _} = get_remote_url(actual)
+
+    [_, _, namespace, repo] = Path.split(remote_url)
+
+    args_url =  user_password_url("salvarez", "1goshushijo6", namespace, repo)
+                |> String.rstrip
+
+    args_user_password = ["push", "--repo", args_url]
+
+    cmd("git", args_user_password, actual)
+    push(resto)
+  end
+
+  def status([]), do: []
+  def status([ actual | resto ]) do
+    IO.puts "Ejecutando en #{actual}"
+    
+    case cmd("git", ["status"], actual) do
+      {"On branch master\nnothing to commit, working directory clean\n", _} -> status(resto)
+      {output, _} ->  IO.puts output
+                      raise "Hay cambios para commitear en #{actual}"
+
+    end
+
+  end
+
+
+
+  def user_password_url(user, password, namespace, repo) do
+    Enum.join(["https://", user, ":", password, "@", "gitlab.educ.ar", "/", namespace, "/", repo])
+  end
+
+  def get_remote_url(dir) do
+    cmd("git", ["config", "--get", "remote.origin.url"], dir)
+  end
+
+  defp cmd(cmd, args, dir), do: System.cmd(cmd, args, cd: dir)
+
+end
+
 defmodule Funciones do
 
   def filtrar_directorios([]), do: []
@@ -23,7 +67,7 @@ defmodule Funciones do
 
     case Lista.len(dirs) do
       1 ->  [ hd(dirs) | encontrar_git_root resto ]
-      _ ->  IO.puts "ERROR: El directorio #{actual} posee mas de una carpeta interna"
+      _ ->  raise "ERROR: El directorio #{actual} posee mas de una carpeta interna"
             encontrar_git_root resto
     end
 
@@ -41,10 +85,14 @@ defmodule Funciones do
     [ actual | hacer_magia(resto, cmd, args) ]
   end
 
+  def pushes(directorios), do: Git.push(directorios)
+  def statuses(directorios), do: Git.status(directorios)
+
   def armar_path(_pre, []), do: []
   def armar_path(pre, [ actual | resto ]) do
     [ Enum.join([pre, "/", actual]) | armar_path(pre, resto) ]
   end
+
 
 end
 
@@ -54,7 +102,9 @@ dir = "../educar-debs"
 Funciones.armar_path(dir, lista)
 |> Funciones.filtrar_directorios
 |> Funciones.encontrar_git_root
-|> Funciones.hacer_magia("git", ["status"])
-|> IO.inspect
+#|> Funciones.pushes
+|> Funciones.statuses
+#|> Funciones.hacer_magia("git", ["commit", "-m", "Se agrega README vacio"])
+#|> IO.inspect
 
 
