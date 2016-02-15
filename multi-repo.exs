@@ -46,6 +46,26 @@ defmodule Git do
 
   end
 
+  def add([]), do: []
+  def add([ actual | resto ]) do
+    IO.puts "Agregando todos los archivos en: #{actual}"
+    {output, _} = cmd("git", ["add", "."], actual)
+
+    IO.puts output
+
+    [ actual | add(resto) ]
+
+  end
+
+  def commit([], _), do: []
+  def commit([ actual | resto ], m) do
+    IO.puts "Commiteando archivos en: #{actual}"
+    {output, _} = cmd("git", ["commit", "-m", "#{m}"], actual)
+
+    [ actual | commit(resto, m) ]
+
+  end
+
 
 
   def user_password_url(user, password, namespace, repo) do
@@ -102,6 +122,8 @@ defmodule Funciones do
   def pushes(directorios), do: Git.push(directorios)
   def statuses(directorios), do: Git.status(directorios)
   def logses(directorios, m), do: Git.log(directorios, m)
+  def addses(directorios), do: Git.add(directorios)
+  def commitses(directorios, m), do: Git.commit(directorios, m)
 
   def armar_path(_pre, []), do: []
   def armar_path(pre, [ actual | resto ]) do
@@ -117,10 +139,10 @@ dir = "../educar-debs"
 Funciones.armar_path(dir, lista)
 |> Funciones.filtrar_directorios
 |> Funciones.encontrar_git_root
-#|> Funciones.pushes
+|> Funciones.addses
+|> Funciones.commitses("Se agrega README vacio")
+|> Funciones.pushes
 #|> Funciones.statuses
-|> Funciones.logses("Se agrega README vacio\n")
-#|> Funciones.hacer_magia("git", ["commit", "-m", "Se agrega README vacio"])
-#|> IO.inspect
+#|> Funciones.logses("Se agrega README vacio\n")
 
 
