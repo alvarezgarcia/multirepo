@@ -22,13 +22,26 @@ defmodule Git do
 
   def status([]), do: []
   def status([ actual | resto ]) do
-    IO.puts "Ejecutando en #{actual}"
+    IO.puts "Ejecutando status en #{actual}"
     
     case cmd("git", ["status"], actual) do
       {"On branch master\nnothing to commit, working directory clean\n", _} -> status(resto)
       {output, _} ->  IO.puts output
                       raise "Hay cambios para commitear en #{actual}"
 
+    end
+  end
+
+  def log([], _), do: []
+  def log([ actual | resto ], m) do
+    IO.puts "Ultimo commit en: #{actual}"
+
+    {output, _} = cmd("git", ["log", "--pretty=oneline", "--abbrev-commit", "-1"], actual)
+    [_, msg] = String.split(output, " ", parts: 2)
+
+    cond do
+      msg != m -> raise "No es \"#{m}\""
+      msg == m -> log(resto, m)
     end
 
   end
@@ -67,6 +80,7 @@ defmodule Funciones do
 
     case Lista.len(dirs) do
       1 ->  [ hd(dirs) | encontrar_git_root resto ]
+      0 ->  raise "ERROR: No hay subdirectorio en #{actual}"
       _ ->  raise "ERROR: El directorio #{actual} posee mas de una carpeta interna"
             encontrar_git_root resto
     end
@@ -87,6 +101,7 @@ defmodule Funciones do
 
   def pushes(directorios), do: Git.push(directorios)
   def statuses(directorios), do: Git.status(directorios)
+  def logses(directorios, m), do: Git.log(directorios, m)
 
   def armar_path(_pre, []), do: []
   def armar_path(pre, [ actual | resto ]) do
@@ -103,7 +118,8 @@ Funciones.armar_path(dir, lista)
 |> Funciones.filtrar_directorios
 |> Funciones.encontrar_git_root
 #|> Funciones.pushes
-|> Funciones.statuses
+#|> Funciones.statuses
+|> Funciones.logses("Se agrega README vacio\n")
 #|> Funciones.hacer_magia("git", ["commit", "-m", "Se agrega README vacio"])
 #|> IO.inspect
 
