@@ -4,45 +4,32 @@ defmodule Lista do
 end
 
 defmodule Git do
-  def push([]), do: []
-  def push([ actual | resto ]) do
-    IO.puts "Ejecutando en #{actual}"
-    {remote_url, _} = get_remote_url(actual)
-
-    [_, _, namespace, repo] = Path.split(remote_url)
-
-    args_url =  user_password_url("salvarez", "1goshushijo6", namespace, repo)
-                |> String.rstrip
-
-    args_user_password = ["push", "--repo", args_url]
-
-    cmd("git", args_user_password, actual)
-    push(resto)
-  end
 
   def status([]), do: []
   def status([ actual | resto ]) do
-    IO.puts "Ejecutando status en #{actual}"
+    IO.puts "\ngit status en #{actual}"
     
     case cmd("git", ["status"], actual) do
-      {"On branch master\nnothing to commit, working directory clean\n", _} -> status(resto)
+      {"On branch master\nnothing to commit, working directory clean\n", _} ->  IO.puts "OK"
+                                                                                status(resto)
       {output, _} ->  IO.puts output
                       raise "Hay cambios para commitear en #{actual}"
 
     end
   end
 
-  def log([]), do: []
-  def log([ actual | resto ]) do
+  def log([], _), do: []
+  def log([ actual | resto ], count) do
     IO.puts "Ultimo commit en: #{actual}"
 
-    {output, _} = cmd("git", ["log", "--pretty=oneline", "--abbrev-commit", "-1"], actual)
+    {output, _} = cmd("git", ["log", "--pretty=oneline", "--abbrev-commit", count], actual)
     [_, msg] = String.split(output, " ", parts: 2)
 
     IO.puts msg
 
-    log(resto)
+    log(resto, count)
   end
+
   def log_compare([], _), do: []
   def log_compare([ actual | resto ], m) do
     IO.puts "Ultimo commit en: #{actual}"
@@ -55,36 +42,6 @@ defmodule Git do
       msg == m -> log_compare(resto, m)
     end
 
-  end
-
-  def add([]), do: []
-  def add([ actual | resto ]) do
-    IO.puts "Agregando todos los archivos en: #{actual}"
-    {output, _} = cmd("git", ["add", "."], actual)
-
-    IO.puts output
-
-    [ actual | add(resto) ]
-
-  end
-
-  def commit([], _), do: []
-  def commit([ actual | resto ], m) do
-    IO.puts "Commiteando archivos en: #{actual}"
-    cmd("git", ["commit", "-m", "#{m}"], actual)
-
-    [ actual | commit(resto, m) ]
-
-  end
-
-
-
-  def user_password_url(user, password, namespace, repo) do
-    Enum.join(["https://", user, ":", password, "@", "gitlab.educ.ar", "/", namespace, "/", repo])
-  end
-
-  def get_remote_url(dir) do
-    cmd("git", ["config", "--get", "remote.origin.url"], dir)
   end
 
   defp cmd(cmd, args, dir), do: System.cmd(cmd, args, cd: dir)
@@ -130,12 +87,9 @@ defmodule Funciones do
     [ actual | hacer_magia(resto, cmd, args) ]
   end
 
-  def pushes(directorios), do: Git.push(directorios)
   def statuses(directorios), do: Git.status(directorios)
+  def logses(directorios), do: Git.log(directorios, -1)
   def logses_compare(directorios, m), do: Git.log_compare(directorios, m)
-  def logses(directorios), do: Git.log(directorios)
-  def addses(directorios), do: Git.add(directorios)
-  def commitses(directorios, m), do: Git.commit(directorios, m)
 
   def armar_path(_pre, []), do: []
   def armar_path(pre, [ actual | resto ]) do
@@ -151,11 +105,8 @@ dir = "../educar-debs"
 Funciones.armar_path(dir, lista)
 |> Funciones.filtrar_directorios
 |> Funciones.encontrar_git_root
-#|> Funciones.addses
-#|> Funciones.commitses("Se agrega README vacio")
-#|> Funciones.pushes
-#|> Funciones.statuses
-|> Funciones.logses_compare("Se agrega README vacio\n")
+|> Funciones.statuses
+#|> Funciones.logses_compare("Se agrega README vacio\n")
 #|> Funciones.logses
 
 
