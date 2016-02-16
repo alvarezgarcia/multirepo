@@ -88,7 +88,7 @@ defmodule Funciones do
   end
 
   def statuses(directorios), do: Git.status(directorios)
-  def logses(directorios), do: Git.log(directorios, -1)
+  def logses(directorios), do: Git.log(directorios, "-1")
   def logses_compare(directorios, m), do: Git.log_compare(directorios, m)
 
   def armar_path(_pre, []), do: []
@@ -105,8 +105,8 @@ dir = "../educar-debs"
 Funciones.armar_path(dir, lista)
 |> Funciones.filtrar_directorios
 |> Funciones.encontrar_git_root
-|> Funciones.statuses
+|> Funciones.logses
+#|> Funciones.statuses
 #|> Funciones.logses_compare("Se agrega README vacio\n")
-#|> Funciones.logses
 
 
